@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  tmsv2_web:
+    container_name: tmsv2_web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ./entrypoint.sh
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /home/docker_persistent/tmsv2/public/static:/app/public/static
+      - /home/docker_persistent/tmsv2/media:/app/media
+    ports:
+      - "127.0.0.1:9001:8020"
+
+  tmsv2_celery:
+    container_name: tmsv2_celery
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    entrypoint: ./celery.sh
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /home/docker_persistent/tmsv2/public/static:/app/public/static
+      - /home/docker_persistent/tmsv2/media:/app/media
+
+  tmsv2_celery_flower:
+    container_name: tmsv2_celery_flower
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - tmsv2_celery
+    ports:
+      - "5510:5555"
+    command: celery -A tms flower --address=0.0.0.0 --port=5555 --basic_auth=shuvo:shuvo@2020
